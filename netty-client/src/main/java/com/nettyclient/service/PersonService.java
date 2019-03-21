@@ -1,5 +1,6 @@
 package com.nettyclient.service;
 
+import entity.Student;
 import io.netty.channel.Channel;
 
 /**
@@ -9,5 +10,6 @@ import io.netty.channel.Channel;
  */
 public interface PersonService {
 
-    void sendId(int id,Channel channel);
+    Student getStudent(int id,Channel channel);
+
 }

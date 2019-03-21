@@ -1,11 +1,11 @@
 package com.nettyclient.handler;
 
-import com.nettyclient.common.Constant;
-import com.nettyclient.common.ExecutorServicePool;
-import entity.TranslatorData;
+import common.Constant;
+import entity.Response;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
+import util.ExecutorServicePool;
 
 import java.util.concurrent.ExecutorService;
 
@@ -24,17 +24,16 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         threadPool.submit(() -> {
-            solve(ctx,msg);
+            solve(msg);
         });
     }
 
-    public void solve(ChannelHandlerContext ctx, Object msg){
-        System.out.println("handler...");
+    private void solve(Object msg){
+        System.out.println("Client Handler...");
 
         try{
-            TranslatorData response = (TranslatorData)msg;
-            System.out.println("Client端: id =" + response.getId() + " name = " + response.getName()
-                    + " message = " +  response.getMessage() + " data = " + response.getData());
+            Response response = (Response)msg;
+            System.out.println("Client端: id =" + response.getRequestId() + " data = " + response.getResponse());
         }finally {
             //用完缓存需要进行释放(Client端只读不写需要释放)
             ReferenceCountUtil.release(msg);

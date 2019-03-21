@@ -14,12 +14,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class NettyClientApplication {
 
-    private static final String HOST = "127.0.0.1";
-    private static final int PORT = 8765;
-
     public static void main(String[] args) {
         SpringApplication.run(NettyClientApplication.class, args);
-        new NettyClient(HOST,PORT).sendData();
     }
 
 }

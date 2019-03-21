@@ -1,16 +1,16 @@
 package com.nettyserver.handler;
 
-import com.nettyserver.common.Constant;
-import com.nettyserver.common.ExecutorServicePool;
+import com.nettyserver.util.ExecutorServicePoolUtil;
 import com.nettyserver.service.impl.PersonServiceImpl;
-import entity.TranslatorData;
+import common.Constant;
+import entity.Request;
+import entity.Response;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
-import io.netty.handler.timeout.IdleStateHandler;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -18,24 +18,32 @@ import java.util.concurrent.ExecutorService;
  * @Description:
  * @Date: Created in 10:51 2019/3/14
  */
-public class ServerHandler extends ChannelInboundHandlerAdapter {
+public class ServerHandler extends SimpleChannelInboundHandler<Request> {
 
-    private static ExecutorService threadPool = ExecutorServicePool.createThreadPool(
+    private static ExecutorService threadPool = ExecutorServicePoolUtil.createThreadPool(
             Constant.THREAD_POOL_NAME,
             Constant.THREAD_POOL_SIZE,
             Constant.ORDER_MAX_CORE_POOL_SIZE);
 
     private PersonServiceImpl personService = new PersonServiceImpl();
 
+    private Object service;
+
+    public ServerHandler(){}
+
+    public ServerHandler(Object service){
+        this.service = service;
+    }
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, Request request) throws Exception {
         threadPool.submit(() -> {
-            solve(ctx,msg);
+            solve(ctx,request);
         });
     }
 
     /**
-     * 事件已触发
+     * 事件已触发后进行心跳包检测
      */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -53,19 +61,30 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     }
 
-    public void solve(ChannelHandlerContext ctx, Object msg){
-        TranslatorData request = (TranslatorData)msg;
-        System.out.println("Server端: id =" + request.getId() + " name = " + request.getName()
-                + " message = " +  request.getMessage() + " data = " + request.getData());
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause){
+        ctx.channel().close();
+    }
 
-        //响应回客户端
-        int id = (Integer)request.getData();
-        TranslatorData response = personService.getStudent(id);
+    public void solve(ChannelHandlerContext ctx, Request msg) {
 
-        //把对象传回给客户端，并且把数据冲刷到异步NIO通道上
-        ctx.writeAndFlush(response);
+        try{
+            String methodName = msg.getMethod();
+            Object[] params = msg.getParams();
+            Class<?>[] parameterTypes = msg.getParameterTypes();
+            long requestId = msg.getRequestId();
+            //通过反射来获取客户端所要调用的方法并执行
+            Method method = service.getClass().getDeclaredMethod(methodName, parameterTypes);
+            method.setAccessible(true);
+            Object invoke = method.invoke(service, params);
+            Response response = new Response();
+            response.setRequestId(requestId);
+            response.setResponse(invoke);
+            ctx.pipeline().writeAndFlush(response);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
-        System.out.println("send...");
     }
 
 }

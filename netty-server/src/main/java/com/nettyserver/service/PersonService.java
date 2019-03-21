@@ -1,6 +1,6 @@
 package com.nettyserver.service;
 
-import entity.TranslatorData;
+import entity.Student;
 
 /**
  * @Author: Xuyk
@@ -9,5 +9,5 @@ import entity.TranslatorData;
  */
 public interface PersonService {
 
-    TranslatorData getStudent(int id);
+    Student getStudent(int id);
 }

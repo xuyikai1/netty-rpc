@@ -2,7 +2,6 @@ package com.nettyserver.service.impl;
 
 import com.nettyserver.service.PersonService;
 import entity.Student;
-import entity.TranslatorData;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,24 +13,14 @@ import org.springframework.stereotype.Service;
 public class PersonServiceImpl implements PersonService {
 
     @Override
-    public TranslatorData getStudent(int id) {
-        TranslatorData translatorData = new TranslatorData();
-        translatorData.setId("" + id);
-        translatorData.setName("Person Service");
+    public Student getStudent(int id) {
 
-        if(id == 1){
-            Student student = new Student();
-            student.setId("" + id);
-            student.setAge(20);
-            student.setName("man");
-            translatorData.setMessage("success");
-            translatorData.setData(student);
-        }else{
-            translatorData.setMessage("false");
-            translatorData.setData(null);
-        }
+        Student student = new Student();
+        student.setId("" + id);
+        student.setAge(20);
+        student.setName("man");
 
-        return translatorData;
+        return student;
     }
 
 

@@ -1,7 +1,7 @@
 package com.nettyclient.service.impl;
 
 import com.nettyclient.service.PersonService;
-import entity.TranslatorData;
+import entity.Student;
 import io.netty.channel.Channel;
 import org.springframework.stereotype.Service;
 
@@ -13,15 +13,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class PersonServiceImpl implements PersonService {
 
-    @Override
-    public void sendId(int id,Channel channel) {
-        TranslatorData request = new TranslatorData();
-        request.setId("" + id);
-        request.setName("请求消息名称" + id);
-        request.setMessage("请求消息内容" + id);
-        request.setData(id);
 
-        channel.writeAndFlush(request);
+    @Override
+    public Student getStudent(int id,Channel channel) {
+        Student student = new Student();
+        student.setName("Xuyk");
+        student.setId("1");
+        student.setAge(23);
+        return student;
     }
+
 
 }

@@ -1,6 +1,7 @@
 package zookeeper;
 
 import common.Constant;
+import entity.Request;
 import entity.ZookeeperNode;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -51,11 +52,13 @@ public class Curator {
     private static Curator curator = new Curator();
 
     public Curator() {
-        //使用Constant里的默认zk的ip集群(ZK_IPS)连接上zk
+        // 使用Constant里的默认zk的ip集群(ZK_IPS)连接上zk
         this.ips = Constant.ZK_IPS;
         connect(Constant.ZK_IPS);
-        this.nodePath =  Constant.ZOOKEEPER_SERVER_PATH;
-        this.servicePath = "/serverSpace/" + Constant.ZOOKEEPER_SERVER_PATH;
+        // /192.168.254.1/services/serviceName
+        this.nodePath =  Constant.IP_PORT + Constant.ZOOKEEPER_SERVER_PATH ;
+        // /serverSpace/192.168.254.1/services
+        this.servicePath = "/" + Constant.IP_PORT + Constant.ZOOKEEPER_SERVER_PATH;
         connect(ips);
     }
 
@@ -64,8 +67,8 @@ public class Curator {
         this.ip = ip;
         this.port = port;
         this.ips = ips;
-        this.nodePath = Constant.ZOOKEEPER_SERVER_PATH + "/" + serviceName + "/" + ip + ":" + port;
-        this.servicePath = "/" + Constant.ZOOKEEPER_SERVER_PATH + "/" + serviceName;
+        this.nodePath = "/" + ip + ":" + port + Constant.ZOOKEEPER_SERVER_PATH + "/" + serviceName;
+        this.servicePath = "/" + ip + ":" + port + Constant.ZOOKEEPER_SERVER_PATH ;
         connect(ips);
     }
 
@@ -94,12 +97,12 @@ public class Curator {
     /**
      * 注册服务(创建临时节点)、监听服务变化 单个注册/批量注册
      */
-    public void registerService(){
+    public void registerService(Request request){
         if(servers.size() > 0){
             //TODO 批量注册服务待完善
         }
         //创建节点 路径:/serverSpace/服务名/ip+端口
-        ZookeeperNode node = curator.createNode(nodePath);
+        ZookeeperNode node = curator.registerNode(nodePath,request);
         System.out.println(node);
     }
 
@@ -133,6 +136,31 @@ public class Curator {
                     .withMode(CreateMode.EPHEMERAL)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
                     .forPath(nodePath);
+            //获取到创建好的节点
+            node = getNode(nodePath);
+
+            System.out.println("result: " + result);
+            System.out.println("节点创建成功...");
+        }catch (Exception e){
+            System.out.println("节点创建失败...");
+            e.printStackTrace();
+        }
+        return node;
+    }
+
+    /**
+     * 服务端注册节点并赋值(值为请求的参数等)
+     */
+    public ZookeeperNode registerNode(String nodePath, Request request){
+        ZookeeperNode node = new ZookeeperNode();
+        byte[] data = request.toJsonString().getBytes();
+        try{
+            // 创建节点1.节点数据 2.创建父节点，也就是会递归创建 3.节点类型 4.节点的acl权限
+            String result = client.create().creatingParentsIfNeeded()
+                    //创建临时节点、服务器关闭节点失效
+                    .withMode(CreateMode.EPHEMERAL)
+                    .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+                    .forPath(nodePath,data);
             //获取到创建好的节点
             node = getNode(nodePath);
 

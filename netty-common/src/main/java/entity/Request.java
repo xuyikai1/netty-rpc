@@ -1,5 +1,7 @@
 package entity;
 
+import cn.hutool.json.JSONObject;
+
 /**
  * @Author: Xuyk
  * @Description: netty通信请求类
@@ -13,6 +15,17 @@ public class Request {
     private Class<?>[] parameterTypes;
     private Object[] params;
     private long requestTime;
+
+    public Request(){}
+
+    public Request(long requestId, Class<?> clazz, String method, Class<?>[] parameterTypes, Object[] params, long requestTime) {
+        this.requestId = requestId;
+        this.clazz = clazz;
+        this.method = method;
+        this.parameterTypes = parameterTypes;
+        this.params = params;
+        this.requestTime = requestTime;
+    }
 
     public long getRequestId() {
         return requestId;
@@ -61,4 +74,9 @@ public class Request {
     public void setRequestTime(long requestTime) {
         this.requestTime = requestTime;
     }
+
+    public String toJsonString(){
+        return new JSONObject(this).toString();
+    }
+
 }

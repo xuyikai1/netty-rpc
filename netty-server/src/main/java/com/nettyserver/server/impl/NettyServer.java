@@ -2,9 +2,12 @@ package com.nettyserver.server.impl;
 
 import com.nettyserver.handler.ServerHandler;
 import com.nettyserver.server.Server;
-import com.nettyserver.service.PersonService;
+import com.nettyserver.service.StudentService;
+import com.nettyserver.service.impl.StudentServiceImpl;
 import com.nettyserver.util.NetUtil;
 import common.Constant;
+import entity.Request;
+import entity.Student;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -60,9 +63,12 @@ public class NettyServer implements Server {
             System.out.println("Server Startup...");
 
             //连接zk
-            Curator curator = new Curator(PersonService.class.getSimpleName(),NetUtil.getLocalIp(),Constant.PORT,Constant.ZK_IPS);
+            Curator curator = new Curator(StudentService.class.getSimpleName(),NetUtil.getLocalIp(),Constant.PORT,Constant.ZK_IPS);
             //注入服务到zk
-            curator.registerService();
+//            Request request = new Request(1,Student.class,"getStudent",);
+//            curator.registerService();
+            //客户端观察services结点获取最新服务变动
+            /* curator.WatcheNode(curator.getServicePath()); */
 
             //异步关闭
             cf.channel().closeFuture().sync();
@@ -79,5 +85,20 @@ public class NettyServer implements Server {
         bossGroup.shutdownGracefully();
         workGroup.shutdownGracefully();
         System.out.println("Server ShutDown...");
+    }
+
+    public Request packageRequest(Class<?> clazz,String methodName){
+        //获取类方法对应的参数列表
+//        clazz.getTypeParameters()
+        //获取类方法对应的参数类型列表
+        Request request = new Request();
+
+        return request;
+    }
+
+    public static void main(String[] args) throws NoSuchMethodException {
+        Class<?> clazz = StudentServiceImpl.class;
+        System.out.println(clazz.getDeclaredFields().toString());
+        System.out.println(clazz.getMethod("getStudent").getParameterTypes());
     }
 }

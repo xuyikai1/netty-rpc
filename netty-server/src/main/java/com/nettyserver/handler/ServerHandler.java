@@ -1,7 +1,7 @@
 package com.nettyserver.handler;
 
 import com.nettyserver.util.ExecutorServicePoolUtil;
-import com.nettyserver.service.impl.PersonServiceImpl;
+import com.nettyserver.service.impl.StudentServiceImpl;
 import common.Constant;
 import entity.Request;
 import entity.Response;
@@ -25,7 +25,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
             Constant.THREAD_POOL_SIZE,
             Constant.ORDER_MAX_CORE_POOL_SIZE);
 
-    private PersonServiceImpl personService = new PersonServiceImpl();
+    private StudentServiceImpl personService = new StudentServiceImpl();
 
     private Object service;
 

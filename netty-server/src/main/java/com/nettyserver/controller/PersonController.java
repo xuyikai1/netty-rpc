@@ -1,6 +1,6 @@
 package com.nettyserver.controller;
 
-import com.nettyserver.service.PersonService;
+import com.nettyserver.service.StudentService;
 import org.springframework.stereotype.Controller;
 
 import javax.annotation.Resource;
@@ -14,6 +14,6 @@ import javax.annotation.Resource;
 public class PersonController {
 
     @Resource
-    private PersonService service;
+    private StudentService service;
 
 }

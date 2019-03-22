@@ -21,6 +21,9 @@ public class Constant {
     /** 存储服务端本地ip 用于客户端连接*/
     public static final String SERVER_IP = "192.168.254.1";
 
+    /** 存储服务端本地ip和端口 用于服务端连接*/
+    public static final String IP_PORT = "/192.168.254.1:8765";
+
     /** 设置服务端端口号*/
     public static final int PORT = 8765;
 

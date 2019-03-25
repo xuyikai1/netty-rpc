@@ -16,10 +16,10 @@ public class Constant {
     public static final String ZOOKEEPER_SERVER_PATH = "/NettyServer/";
 
     /** 读超时 **/
-    public static final Integer READ_IDEL_TIME_OUT = 10;
+    public static final Integer READ_IDEL_TIME_OUT = 1000;
     /** 写超时 **/
-    public static final Integer WRITE_IDEL_TIME_OUT = 0;
+    public static final Integer WRITE_IDEL_TIME_OUT = 1000;
     /** 所有超时 **/
-    public static final Integer ALL_IDEL_TIME_OUT = 0;
+    public static final Integer ALL_IDEL_TIME_OUT = 1000;
 
 }

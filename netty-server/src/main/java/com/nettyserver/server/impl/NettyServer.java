@@ -1,13 +1,14 @@
 package com.nettyserver.server.impl;
 
+import codec.V2.RPCDecoder;
+import codec.V2.RPCEncoder;
 import com.nettyserver.handler.ServerHandler;
 import com.nettyserver.server.Server;
-import com.nettyserver.service.StudentService;
 import com.nettyserver.service.impl.StudentServiceImpl;
 import com.nettyserver.util.NetUtil;
 import common.Constant;
 import entity.Request;
-import entity.Student;
+import entity.Response;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -16,11 +17,12 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.timeout.IdleStateHandler;
 import serializer.Marshalling.MarshallingFactory;
+import service.StudentService;
 import zookeeper.Curator;
 
-import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @Author: Xuyk
@@ -32,6 +34,8 @@ public class NettyServer implements Server {
     /** 创建两个工作线程组：一个用于网络连接接收请求，一个用于实际处理业务的线程组 */
     private EventLoopGroup bossGroup = new NioEventLoopGroup();
     private EventLoopGroup workGroup = new NioEventLoopGroup();
+
+    private Map<String, Object> serviceMap = new HashMap<>();
 
     @Override
     public void start() {
@@ -51,9 +55,11 @@ public class NettyServer implements Server {
                         protected void initChannel(SocketChannel sc) throws Exception {
                             sc.pipeline().addLast(MarshallingFactory.buildMarshallingDecoder());
                             sc.pipeline().addLast(MarshallingFactory.buildMarshallingEncoder());
+//                            sc.pipeline().addLast(new RPCEncoder(Request.class));
+//                            sc.pipeline().addLast(new RPCDecoder(Response.class));
                             //心跳包检测
-                            sc.pipeline().addLast(new IdleStateHandler(Constant.READ_IDEL_TIME_OUT, Constant.WRITE_IDEL_TIME_OUT, Constant.ALL_IDEL_TIME_OUT, TimeUnit.SECONDS));
-                            sc.pipeline().addLast(new ServerHandler());
+//                            sc.pipeline().addLast(new IdleStateHandler(Constant.READ_IDEL_TIME_OUT, Constant.WRITE_IDEL_TIME_OUT, Constant.ALL_IDEL_TIME_OUT, TimeUnit.SECONDS));
+                            sc.pipeline().addLast(new ServerHandler(serviceMap));
                         }
                     });
 
@@ -65,10 +71,10 @@ public class NettyServer implements Server {
             //连接zk
             Curator curator = new Curator(StudentService.class.getSimpleName(),NetUtil.getLocalIp(),Constant.PORT,Constant.ZK_IPS);
             //注入服务到zk
-//            Request request = new Request(1,Student.class,"getStudent",);
-//            curator.registerService();
+            curator.registerService("getStudent");
+            serviceMap.put("StudentService",new StudentServiceImpl());
             //客户端观察services结点获取最新服务变动
-            /* curator.WatcheNode(curator.getServicePath()); */
+//            curator.WatcheNode(curator.getServicePath());
 
             //异步关闭
             cf.channel().closeFuture().sync();
@@ -96,9 +102,4 @@ public class NettyServer implements Server {
         return request;
     }
 
-    public static void main(String[] args) throws NoSuchMethodException {
-        Class<?> clazz = StudentServiceImpl.class;
-        System.out.println(clazz.getDeclaredFields().toString());
-        System.out.println(clazz.getMethod("getStudent").getParameterTypes());
-    }
 }

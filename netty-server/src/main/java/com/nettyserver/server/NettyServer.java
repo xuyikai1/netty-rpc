@@ -50,7 +50,7 @@ public class NettyServer {
                         sc.pipeline().addLast(MarshallingFactory.buildMarshallingDecoder());
                         sc.pipeline().addLast(MarshallingFactory.buildMarshallingEncoder());
                         //心跳包检测
-                        sc.pipeline().addLast(new IdleStateHandler(Constant.READ_IDEL_TIME_OUT, Constant.WRITE_IDEL_TIME_OUT, Constant.ALL_IDEL_TIME_OUT, TimeUnit.SECONDS));
+//                        sc.pipeline().addLast(new IdleStateHandler(Constant.READ_IDEL_TIME_OUT, Constant.WRITE_IDEL_TIME_OUT, Constant.ALL_IDEL_TIME_OUT, TimeUnit.SECONDS));
                         sc.pipeline().addLast(new ServerHandler());
                     }
                 });

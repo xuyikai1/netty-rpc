@@ -2,15 +2,11 @@ package com.nettyserver.controller;
 
 import com.nettyserver.entity.ResultVO;
 import com.nettyserver.util.ResultVOUtil;
-import common.Constant;
-import entity.ServiceMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zookeeper.Curator;
-
-import java.util.List;
 
 
 /**
@@ -30,7 +26,7 @@ public class ServiceController {
                                     @RequestParam("Ips") String Ips){
 
         Curator curator = new Curator(serviceName,serverIp,port,Ips);
-        curator.registerService();
+//        curator.registerService();
         curator.close();
         return ResultVOUtil.success();
     }

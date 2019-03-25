@@ -1,11 +1,17 @@
 package entity;
 
+import cn.hutool.json.JSONObject;
+
+import java.io.Serializable;
+
 /**
  * @Author: Xuyk
  * @Description: netty通信返回类
  * @Date: Created in 14:46 2019/3/20
  */
-public class Response {
+public class Response implements Serializable {
+
+    private static final long serialVersionUID = 2328081281051059489L;
 
     private long requestId;
     private Object response;
@@ -34,4 +40,5 @@ public class Response {
     public void setThrowable(Throwable throwable) {
         this.throwable = throwable;
     }
+
 }

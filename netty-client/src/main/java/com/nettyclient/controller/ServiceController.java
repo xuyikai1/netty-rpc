@@ -1,12 +1,19 @@
 package com.nettyclient.controller;
 
+import com.nettyclient.client.NettyClient;
 import com.nettyclient.proxy.JDKProxy;
 import common.Constant;
 import entity.Request;
+import entity.Student;
+import entity.ZookeeperNode;
+import io.netty.channel.Channel;
+import io.netty.channel.DefaultChannelPromise;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import service.StudentService;
+import service.impl.StudentServiceImpl;
 import zookeeper.Curator;
 
 import javax.validation.Valid;
@@ -39,11 +46,20 @@ public class ServiceController {
 
     /**
      * 模拟用户针对某服务进行调用(动态代理式本地化调用)
-     * @param request
      */
-    @PostMapping("/sendData")
-    public void sendData(@Valid Request request){
+    @PostMapping("/getStudent")
+    public Student getStudent(){
+        //注册客户端
+        NettyClient client = new NettyClient("127.0.0.1",8765);
+        //绑定当前节点变动情况
+        Curator curator = new Curator(StudentService.class.getSimpleName(),"127.0.0.1",Constant.PORT,Constant.ZK_IPS);
+        curator.WatcheNode(curator.getServicePath());
         JDKProxy proxy = new JDKProxy();
-
+        StudentService service = (StudentService)proxy.getProxy(StudentServiceImpl.class,client);
+        Student student = service.getStudent(1);
+        System.out.println(student);
+        return null;
     }
+
+
 }

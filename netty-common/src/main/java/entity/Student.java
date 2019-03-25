@@ -9,17 +9,17 @@ import java.io.Serializable;
  */
 public class Student implements Serializable {
 
-    private static final long serialVersionUID = 1982003590224447168L;
+    private static final long serialVersionUID = 3006204507923471617L;
 
-    private String id;
+    private Integer id;
     private String name;
     private Integer age;
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -42,7 +42,7 @@ public class Student implements Serializable {
     @Override
     public String toString() {
         return "Student{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", age=" + age +
                 '}';

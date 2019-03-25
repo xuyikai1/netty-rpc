@@ -1,8 +1,8 @@
 package com.nettyserver.service.impl;
 
-import com.nettyserver.service.StudentService;
 import entity.Student;
 import org.springframework.stereotype.Service;
+import service.StudentService;
 
 /**
  * @Author: Xuyk
@@ -13,15 +13,17 @@ import org.springframework.stereotype.Service;
 public class StudentServiceImpl implements StudentService {
 
     @Override
-    public Student getStudent(int id) {
-
+    public Student getStudent(Integer id) {
         Student student = new Student();
-        student.setId("" + id);
+        student.setId(id);
         student.setAge(20);
         student.setName("man");
 
         return student;
     }
 
-
+    @Override
+    public void create(Student student) {
+        System.out.println("创建成功");
+    }
 }

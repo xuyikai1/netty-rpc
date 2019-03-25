@@ -1,8 +1,7 @@
 package com.nettyclient;
 
 import com.nettyclient.client.NettyClient;
-import com.nettyclient.service.impl.PersonServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import common.Constant;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -16,6 +15,7 @@ public class NettyClientApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(NettyClientApplication.class, args);
+//        new NettyClient().sendData("127.0.0.1",8765);
     }
 
 }

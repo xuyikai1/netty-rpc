@@ -1,7 +1,7 @@
 package com.nettyserver.controller;
 
-import com.nettyserver.service.StudentService;
 import org.springframework.stereotype.Controller;
+import service.StudentService;
 
 import javax.annotation.Resource;
 

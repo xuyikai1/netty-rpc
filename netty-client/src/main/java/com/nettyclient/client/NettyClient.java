@@ -2,10 +2,14 @@ package com.nettyclient.client;
 
 
 
+import codec.V2.RPCDecoder;
+import codec.V2.RPCEncoder;
 import com.nettyclient.handler.ClientHandler;
-import com.nettyclient.service.PersonService;
-import com.nettyclient.service.impl.PersonServiceImpl;
 import common.Constant;
+import entity.Request;
+import entity.Response;
+import entity.TranslatorData;
+import entity.ZookeeperNode;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -14,7 +18,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import org.junit.Test;
 import serializer.Marshalling.MarshallingFactory;
+import service.StudentService;
 import util.NetUtil;
 import zookeeper.Curator;
 
@@ -27,12 +33,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Description: 构建客户端需要知道服务端的相关信息
  * @Date: Created in 11:12 2019/3/14
  */
-public class NettyClient {
-
-    private PersonServiceImpl personService = new PersonServiceImpl();
+public class NettyClient extends SimpleChannelInboundHandler<Response>{
 
     /**优化部分：使用Map池(根据ip+端口号维护) <String,Channel> */
-    private Channel channel;
+    public Channel channel;
 
     /** 链接句柄，复用链接 **/
     private Map<String,Channel> channelPool = new ConcurrentHashMap<>();
@@ -42,10 +46,21 @@ public class NettyClient {
 
     private ChannelFuture cf;
 
-    public NettyClient(String host,int port){
-        this.connect(host,port);
+    private Response response;
+
+    private final Object obj = new Object();
+
+    public NettyClient(){}
+
+    public NettyClient(String host, int port){
+        connect(host,port);
     }
 
+    /**
+     * 连接、创建Channel通道
+     * @param host
+     * @param port
+     */
     private void connect(String host, int port) {
 
         Bootstrap bootstrap = new Bootstrap();
@@ -63,7 +78,9 @@ public class NettyClient {
                         protected void initChannel(SocketChannel sc) throws Exception {
                             sc.pipeline().addLast(MarshallingFactory.buildMarshallingDecoder());
                             sc.pipeline().addLast(MarshallingFactory.buildMarshallingEncoder());
-                            sc.pipeline().addLast(new ClientHandler());
+//                            sc.pipeline().addLast(new RPCEncoder(Request.class));
+//                            sc.pipeline().addLast(new RPCDecoder(Response.class));
+                            sc.pipeline().addLast(NettyClient.this);
                         }
                     });
 
@@ -88,13 +105,31 @@ public class NettyClient {
 
     }
 
-    public void sendData(){
+    public Response sendData(Request request){
+
+        try{
+
+            ChannelFuture future = this.channel.writeAndFlush(request);
+
+            synchronized (obj) {
+                obj.wait(); // 未收到响应，使线程等待
+            }
+
+            if (response != null) {
+                future.channel().closeFuture().sync();
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return response;
+
         //获取到zk上的服务节点列表
-        Curator curator = new Curator(PersonService.class.getSimpleName(),NetUtil.getLocalIp(),Constant.PORT,Constant.ZK_IPS);
+//        Curator curator = new Curator(StudentService.class.getSimpleName(),NetUtil.getLocalIp(),Constant.PORT,Constant.ZK_IPS);
         //监听zk服务节点变化 客户端操作
-        curator.WatcheNode(curator.getServicePath());
+//        curator.WatcheNode(curator.getServicePath());
         //数据发送
-//        personService.sendId(1,this.channel);
+
     }
 
     public void close() throws InterruptedException {
@@ -103,5 +138,16 @@ public class NettyClient {
         workGroup.shutdownGracefully();
         System.out.println("Client ShutDown... ");
     }
+
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, Response response) throws Exception {
+        this.response = response;
+
+        synchronized (obj) {
+            obj.notifyAll(); // 收到响应，唤醒线程
+        }
+    }
+
 
 }

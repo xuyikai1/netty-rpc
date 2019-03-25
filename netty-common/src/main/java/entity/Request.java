@@ -2,29 +2,44 @@ package entity;
 
 import cn.hutool.json.JSONObject;
 
+import java.io.Serializable;
+import java.util.Arrays;
+
 /**
  * @Author: Xuyk
  * @Description: netty通信请求类
  * @Date: Created in 14:45 2019/3/20
  */
-public class Request {
+public class Request implements Serializable {
+
+    private static final long serialVersionUID = 8121053492427588997L;
 
     private long requestId;
     private Class<?> clazz;
     private String method;
     private Class<?>[] parameterTypes;
     private Object[] params;
+    private String serviceName;
     private long requestTime;
 
     public Request(){}
 
-    public Request(long requestId, Class<?> clazz, String method, Class<?>[] parameterTypes, Object[] params, long requestTime) {
+    public Request(long requestId, Class<?> clazz, String method, Class<?>[] parameterTypes, Object[] params, String serviceName, long requestTime) {
         this.requestId = requestId;
         this.clazz = clazz;
         this.method = method;
         this.parameterTypes = parameterTypes;
         this.params = params;
+        this.serviceName = serviceName;
         this.requestTime = requestTime;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     public long getRequestId() {

@@ -23,6 +23,6 @@
 ...
 
 **使用说明**
-1.服务器或虚拟机搭建奇数个Zookeeper集群，保持互相ping通的状态
-2.启动server服务端、client客户端
-3.controller提供了restful api风格的接口，直接使用postman进行访问
+- 1.服务器或虚拟机搭建奇数个Zookeeper集群，保持互相ping通的状态
+- 2.启动server服务端、client客户端
+- 3.controller提供了restful api风格的接口，直接使用postman进行访问

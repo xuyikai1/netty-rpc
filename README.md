@@ -26,7 +26,7 @@
 
 1.服务器或虚拟机搭建奇数个Zookeeper集群，保持互相ping通的状态
   
-2.启动server服务端、client客户端
+2.springboot快速启动，开启server服务端、client客户端
 
 3.controller提供了api，直接使用postman进行访问
 

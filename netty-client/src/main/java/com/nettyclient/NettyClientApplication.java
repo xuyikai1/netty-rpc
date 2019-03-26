@@ -15,7 +15,6 @@ public class NettyClientApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(NettyClientApplication.class, args);
-//        new NettyClient().sendData("127.0.0.1",8765);
     }
 
 }

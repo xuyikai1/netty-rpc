@@ -34,6 +34,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
 
     private Map<String,Object> serviceMap = new ConcurrentHashMap<>();
 
+    /** 缓存method **/
     private static Map<String,Method> methodCache = new ConcurrentHashMap<>();
 
     public ServerHandler(Map<String, Object> serviceMap){
@@ -71,13 +72,12 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
         ctx.channel().close();
     }
 
-    public void solve(ChannelHandlerContext ctx, Request request) {
+    private void solve(ChannelHandlerContext ctx, Request request) {
 
         try{
             //通过serviceName从serviceMap中取出实例
             Object service = serviceMap.get("StudentService");
             Preconditions.checkNotNull(service);
-            System.out.println(request);
 
             //通过反射来获取客户端所要调用的方法并执行
             String methodName = request.getMethod();
@@ -86,18 +86,14 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
             long requestId = request.getRequestId();
 
             Object invokeResult;
-            /*if (methodCache.containsKey(methodName)) {
+            if (methodCache.containsKey(methodName)) {
                 invokeResult = methodCache.get(methodName).invoke(service, params);
             } else {
-                Method method = service.getClass().getDeclaredMethod(methodName, parameterTypes);
+                Method method = service.getClass().getMethod(methodName, parameterTypes);
                 method.setAccessible(true);
                 invokeResult = method.invoke(service, params);
                 methodCache.put(methodName, method);
-            }*/
-            Method method = service.getClass().getMethod(methodName, parameterTypes);
-            method.setAccessible(true);
-            invokeResult = method.invoke(service, params);
-            methodCache.put(methodName, method);
+            }
 
             //封装响应
             Response response = new Response();

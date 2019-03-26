@@ -1,44 +1,57 @@
 package com.nettyclient.handler;
 
-import common.Constant;
+import com.nettyclient.cache.QueueCache;
+import entity.Request;
 import entity.Response;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.ReferenceCountUtil;
-import util.ExecutorServicePool;
+import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 
 /**
  * @Author: Xuyk
  * @Description:
  * @Date: Created in 11:34 2019/3/14
  */
-public class ClientHandler extends ChannelInboundHandlerAdapter {
+public class ClientHandler extends SimpleChannelInboundHandler<Response> {
 
-    private static ExecutorService threadPool = ExecutorServicePool.createThreadPool(
-            Constant.THREAD_POOL_NAME,
-            Constant.THREAD_POOL_SIZE,
-            Constant.ORDER_MAX_CORE_POOL_SIZE);
+    private ExecutorService threadPool = com.nettyclient.common.ExecutorServicePool.createThreadPool(
+            com.nettyclient.common.Constant.THREAD_POOL_NAME,
+            com.nettyclient.common.Constant.THREAD_POOL_SIZE,
+            com.nettyclient.common.Constant.ORDER_MAX_CORE_POOL_SIZE);
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext,Response response) throws Exception {
+        // 判断是否需要线程池进行解耦,提升并发性能
         threadPool.submit(() -> {
-            solve(msg);
+            try {
+                solve(response);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         });
     }
 
-    private void solve(Object msg){
-        System.out.println("Client Handler...");
-
-        try{
-            Response response = (Response)msg;
-            System.out.println("Client端: id =" + response.getRequestId() + " data = " + response.getResponse());
-        }finally {
-            //用完缓存需要进行释放(Client端只读不写需要释放)
-            ReferenceCountUtil.release(msg);
-        }
+    public void sendRequest(Request request, Channel channel){
+        BlockingQueue<Response> queue = new ArrayBlockingQueue<>(1);
+        QueueCache.put(request.getRequestId(),queue);
+        //将request发送给客户端
+        channel.writeAndFlush(request);
     }
 
+    /**
+     * 根据请求ID，获取到响应队列，然后把response放到返回队列中
+     * @param response
+     * @throws InterruptedException
+     */
+    private void solve(Response response) throws InterruptedException {
+        BlockingQueue<Response> responseQueue = QueueCache.get(response.getRequestId());
+        if (responseQueue != null) {
+            responseQueue.put(response);
+        } else {
+            throw new RuntimeException("responseQueue is null");
+        }
+    }
 
 }

@@ -4,7 +4,6 @@ import io.netty.handler.codec.marshalling.*;
 import org.jboss.marshalling.MarshallerFactory;
 import org.jboss.marshalling.Marshalling;
 import org.jboss.marshalling.MarshallingConfiguration;
-import serializer.Serializer;
 
 /**
  * @Author: Xuyk
@@ -27,7 +26,8 @@ public final class MarshallingFactory {
         //根据marshallerFactory和configuration创建provider
         UnmarshallerProvider provider = new DefaultUnmarshallerProvider(marshallerFactory, configuration);
         //构建Netty的MarshallingDecoder对象，俩个参数分别为provider和单个消息序列化后的最大长度
-        MarshallingDecoder decoder = new MarshallingDecoder(provider, 1024 * 1024 * 1);
+        //超过1M，将不做序列化
+        MarshallingDecoder decoder = new MarshallingDecoder(provider,1024 * 1024);
         return decoder;
     }
 

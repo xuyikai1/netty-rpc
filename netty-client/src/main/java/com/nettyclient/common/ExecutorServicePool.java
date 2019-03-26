@@ -7,7 +7,7 @@ import java.util.concurrent.*;
 
 /**
  * @Author: Xuyk
- * @Description:
+ * @Description: 构建线程池辅助类
  * @Date: Created in 16:53 2019/3/14
  */
 public class ExecutorServicePool {

@@ -2,14 +2,10 @@ package com.nettyclient.client;
 
 
 
-import codec.V2.RPCDecoder;
-import codec.V2.RPCEncoder;
+import com.nettyclient.cache.QueueCache;
 import com.nettyclient.handler.ClientHandler;
-import common.Constant;
 import entity.Request;
 import entity.Response;
-import entity.TranslatorData;
-import entity.ZookeeperNode;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -18,14 +14,12 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import org.junit.Test;
 import serializer.Marshalling.MarshallingFactory;
-import service.StudentService;
-import util.NetUtil;
-import zookeeper.Curator;
+import serializer.kryo.KryoDecoder;
+import serializer.kryo.KryoEncoder;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 
 /**
@@ -33,22 +27,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Description: 构建客户端需要知道服务端的相关信息
  * @Date: Created in 11:12 2019/3/14
  */
-public class NettyClient extends SimpleChannelInboundHandler<Response>{
+public class NettyClient{
 
     /**优化部分：使用Map池(根据ip+端口号维护) <String,Channel> */
     public Channel channel;
 
-    /** 链接句柄，复用链接 **/
+    /** channel通道链接句柄，复用链接 **/
     private Map<String,Channel> channelPool = new ConcurrentHashMap<>();
 
     /**1.创建一个工作线程组用于实际处理业务的线程组 */
     private EventLoopGroup workGroup = new NioEventLoopGroup();
 
     private ChannelFuture cf;
-
-    private Response response;
-
-    private final Object obj = new Object();
 
     public NettyClient(){}
 
@@ -77,10 +67,10 @@ public class NettyClient extends SimpleChannelInboundHandler<Response>{
                         @Override
                         protected void initChannel(SocketChannel sc) throws Exception {
                             sc.pipeline().addLast(MarshallingFactory.buildMarshallingDecoder());
-                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingEncoder());
-//                            sc.pipeline().addLast(new RPCEncoder(Request.class));
-//                            sc.pipeline().addLast(new RPCDecoder(Response.class));
-                            sc.pipeline().addLast(NettyClient.this);
+//                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingEncoder());
+                            sc.pipeline().addLast(new KryoDecoder(1024));
+                            sc.pipeline().addLast(new KryoEncoder());
+                            sc.pipeline().addLast(new ClientHandler());
                         }
                     });
 
@@ -105,31 +95,30 @@ public class NettyClient extends SimpleChannelInboundHandler<Response>{
 
     }
 
-    public Response sendData(Request request){
 
-        try{
+    /**
+     * 动态代理发送请求方法
+     * @param request
+     * @return
+     * @throws InterruptedException
+     */
+    public Response send(Request request) throws InterruptedException {
 
-            ChannelFuture future = this.channel.writeAndFlush(request);
-
-            synchronized (obj) {
-                obj.wait(); // 未收到响应，使线程等待
-            }
-
-            if (response != null) {
-                future.channel().closeFuture().sync();
-            }
-
-        }catch (Exception e){
-            e.printStackTrace();
+        //判断channel为空的情况
+        if (channel == null) {
+            Response response = new Response();
+            RuntimeException runtimeException = new RuntimeException("Channel is not available now");
+            response.setThrowable(runtimeException);
+            return response;
         }
-        return response;
-
-        //获取到zk上的服务节点列表
-//        Curator curator = new Curator(StudentService.class.getSimpleName(),NetUtil.getLocalIp(),Constant.PORT,Constant.ZK_IPS);
-        //监听zk服务节点变化 客户端操作
-//        curator.WatcheNode(curator.getServicePath());
-        //数据发送
-
+        //把请求加入阻塞队列，获取到response返回，超过指定时间则返回null
+        ClientHandler handler = new ClientHandler();
+        handler.sendRequest(request,channel);
+        BlockingQueue<Response> queue = QueueCache.get(request.getRequestId());
+        //take()  队列为空则同步阻塞  两者都为移除并返回队列头部元素
+        //poll()  队列为空返回null,超过设置超时时间也返回null
+        //return queue.poll(requestTimeoutMillis, TimeUnit.MILLISECONDS);
+        return queue.take();
     }
 
     public void close() throws InterruptedException {
@@ -137,16 +126,6 @@ public class NettyClient extends SimpleChannelInboundHandler<Response>{
         cf.channel().closeFuture().sync();
         workGroup.shutdownGracefully();
         System.out.println("Client ShutDown... ");
-    }
-
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, Response response) throws Exception {
-        this.response = response;
-
-        synchronized (obj) {
-            obj.notifyAll(); // 收到响应，唤醒线程
-        }
     }
 
 

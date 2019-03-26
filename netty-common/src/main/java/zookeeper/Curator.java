@@ -17,7 +17,7 @@ import java.util.*;
 
 /**
  * @Author: Xuyk
- * @Description:
+ * @Description: apache Curator -- Zookeeper 客户端
  * @Date: Created in 15:13 2019/3/18
  */
 public class Curator {

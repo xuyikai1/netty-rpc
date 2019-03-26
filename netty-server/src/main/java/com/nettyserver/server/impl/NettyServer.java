@@ -1,7 +1,5 @@
 package com.nettyserver.server.impl;
 
-import codec.V2.RPCDecoder;
-import codec.V2.RPCEncoder;
 import com.nettyserver.handler.ServerHandler;
 import com.nettyserver.server.Server;
 import com.nettyserver.service.impl.StudentServiceImpl;
@@ -18,6 +16,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import serializer.Marshalling.MarshallingFactory;
+import serializer.kryo.KryoDecoder;
+import serializer.kryo.KryoEncoder;
 import service.StudentService;
 import zookeeper.Curator;
 
@@ -53,12 +53,12 @@ public class NettyServer implements Server {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel sc) throws Exception {
-                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingDecoder());
-                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingEncoder());
-//                            sc.pipeline().addLast(new RPCEncoder(Request.class));
-//                            sc.pipeline().addLast(new RPCDecoder(Response.class));
+//                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingDecoder());
+//                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingEncoder());
+                            sc.pipeline().addLast(new KryoDecoder(1024));
+                            sc.pipeline().addLast(new KryoEncoder());
                             //心跳包检测
-//                            sc.pipeline().addLast(new IdleStateHandler(Constant.READ_IDEL_TIME_OUT, Constant.WRITE_IDEL_TIME_OUT, Constant.ALL_IDEL_TIME_OUT, TimeUnit.SECONDS));
+                            //sc.pipeline().addLast(new IdleStateHandler(Constant.READ_IDEL_TIME_OUT, Constant.WRITE_IDEL_TIME_OUT, Constant.ALL_IDEL_TIME_OUT, TimeUnit.SECONDS));
                             sc.pipeline().addLast(new ServerHandler(serviceMap));
                         }
                     });
@@ -73,8 +73,8 @@ public class NettyServer implements Server {
             //注入服务到zk
             curator.registerService("getStudent");
             serviceMap.put("StudentService",new StudentServiceImpl());
-            //客户端观察services结点获取最新服务变动
-//            curator.WatcheNode(curator.getServicePath());
+            //客户端观察services结点获取最新服务变动 --Client
+            //curator.WatcheNode(curator.getServicePath());
 
             //异步关闭
             cf.channel().closeFuture().sync();

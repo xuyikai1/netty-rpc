@@ -15,6 +15,8 @@ public class Constant {
     /** 设置zookeeper的服务注册统一初始路径 **/
     public static final String ZOOKEEPER_SERVER_PATH = "/services";
 
+    public static final String SERVER_SERVICE_PATH = "/192.168.254.1:8765/services";
+
     /** 集群模式则是多个ip */
     public static final String ZK_IPS = "192.168.254.133:2181,192.168.254.134:2181,192.168.254.135:2181";
 
@@ -34,6 +36,6 @@ public class Constant {
     /** 所有超时 **/
     public static final Integer ALL_IDEL_TIME_OUT = 0;
 
-
+    public static final Integer requestTimeoutMillis = 100;
 
 }

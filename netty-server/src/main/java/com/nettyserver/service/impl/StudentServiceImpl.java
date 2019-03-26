@@ -14,11 +14,11 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student getStudent(Integer id) {
+        //业务处理
         Student student = new Student();
         student.setId(id);
         student.setAge(20);
         student.setName("man");
-
         return student;
     }
 

@@ -3,6 +3,7 @@ package com.nettyclient.proxy;
 
 import com.nettyclient.client.NettyClient;
 import entity.Request;
+import entity.Response;
 import io.netty.channel.Channel;
 
 import java.lang.reflect.InvocationHandler;
@@ -37,17 +38,19 @@ public class JDKProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
+        //封装request
         Request request = new Request();
         request.setRequestId(atomicLong.incrementAndGet());
         request.setMethod(method.getName());
         request.setParams(args);
         request.setClazz(clazz);
         request.setParameterTypes(method.getParameterTypes());
-        Object result = null;
-        //这里就可以进行所谓的AOP编程
-        result = client.sendData(request);
-        System.out.println("result : " + result);
-        return result;
+        //CGLIBProxy
+        Response response = client.send(request);
+        if(response == null){
+            return null;
+        }
+        return response.getResponse();
     }
 
 

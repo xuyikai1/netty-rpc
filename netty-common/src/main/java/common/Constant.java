@@ -30,11 +30,11 @@ public class Constant {
     public static final int PORT = 8765;
 
     /** 读超时 **/
-    public static final Integer READ_IDEL_TIME_OUT = 10;
+    public static final Integer READ_IDEL_TIME_OUT = 1;
     /** 写超时 **/
-    public static final Integer WRITE_IDEL_TIME_OUT = 0;
+    public static final Integer WRITE_IDEL_TIME_OUT = 1;
     /** 所有超时 **/
-    public static final Integer ALL_IDEL_TIME_OUT = 0;
+    public static final Integer ALL_IDEL_TIME_OUT = 1;
 
     public static final Integer requestTimeoutMillis = 100;
 

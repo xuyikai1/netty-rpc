@@ -15,6 +15,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import serializer.Marshalling.MarshallingFactory;
 import serializer.kryo.KryoDecoder;
 import serializer.kryo.KryoEncoder;
@@ -23,6 +24,7 @@ import zookeeper.Curator;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author: Xuyk
@@ -58,7 +60,7 @@ public class NettyServer implements Server {
                             sc.pipeline().addLast(new KryoDecoder(1024));
                             sc.pipeline().addLast(new KryoEncoder());
                             //心跳包检测
-                            //sc.pipeline().addLast(new IdleStateHandler(Constant.READ_IDEL_TIME_OUT, Constant.WRITE_IDEL_TIME_OUT, Constant.ALL_IDEL_TIME_OUT, TimeUnit.SECONDS));
+                            sc.pipeline().addLast(new IdleStateHandler(Constant.READ_IDEL_TIME_OUT, Constant.WRITE_IDEL_TIME_OUT, Constant.ALL_IDEL_TIME_OUT, TimeUnit.MINUTES));
                             sc.pipeline().addLast(new ServerHandler(serviceMap));
                         }
                     });

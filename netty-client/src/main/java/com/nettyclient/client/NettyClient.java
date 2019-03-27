@@ -66,7 +66,7 @@ public class NettyClient{
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel sc) throws Exception {
-                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingDecoder());
+//                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingDecoder());
 //                            sc.pipeline().addLast(MarshallingFactory.buildMarshallingEncoder());
                             sc.pipeline().addLast(new KryoDecoder(1024));
                             sc.pipeline().addLast(new KryoEncoder());

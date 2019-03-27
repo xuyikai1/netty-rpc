@@ -32,7 +32,7 @@ public class ServiceController {
      * 获取Zk上所提供的服务列表
      * @return
      */
-    @GetMapping("/getServiceList")
+    @GetMapping("/serviceList")
     public Result registerService(){
         Curator curator = null;
         try{
@@ -51,13 +51,13 @@ public class ServiceController {
     /**
      * 模拟用户针对某服务进行调用(动态代理式本地化调用)
      */
-    @PostMapping("/getStudentByJDKProxy")
+    @GetMapping("/getStudentByJDKProxy")
     public Result getStudentByJDKProxy(){
         try{
             JDKProxy proxy = new JDKProxy();
-            StudentService service = (StudentService)proxy.getProxy(StudentServiceImpl.class,client);
+            StudentService service = (StudentService)proxy.getProxy(StudentServiceImpl.class,client,"StudentService");
             Student student = service.getStudent(1);
-            System.out.println(student);
+            System.out.println(ResultUtil.success(student));
             return ResultUtil.success(student);
         }catch (Exception e){
             e.printStackTrace();
@@ -68,13 +68,13 @@ public class ServiceController {
     /**
      * 模拟用户针对某服务进行调用(动态代理式本地化调用)
      */
-    @PostMapping("/getStudentByCGLIBProxy")
+    @GetMapping("/getStudentByCGLIBProxy")
     public Result getStudentByCGLIBProxy(){
         try{
             CGLIBProxy proxy = new CGLIBProxy();
-            StudentService service = (StudentService)proxy.getProxy(StudentServiceImpl.class,client);
+            StudentService service = (StudentService)proxy.getProxy(StudentServiceImpl.class,client,"StudentService");
             Student student = service.getStudent(1);
-            System.out.println(student);
+            System.out.println(ResultUtil.success(student));
             return ResultUtil.success(student);
         }catch (Exception e){
             e.printStackTrace();

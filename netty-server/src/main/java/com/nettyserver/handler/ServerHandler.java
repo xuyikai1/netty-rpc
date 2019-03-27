@@ -59,7 +59,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (IdleState.READER_IDLE.equals(event.state())) {
                 System.out.println("读空闲..关闭channel..");
-//                ctx.channel().close();
+                ctx.channel().close();
             }
         }else{
             super.userEventTriggered(ctx, evt);
@@ -76,7 +76,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
 
         try{
             //通过serviceName从serviceMap中取出实例
-            Object service = serviceMap.get("StudentService");
+            String serviceName = request.getServiceName();
+            Object service = serviceMap.get(serviceName);
             Preconditions.checkNotNull(service);
 
             //通过反射来获取客户端所要调用的方法并执行

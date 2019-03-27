@@ -23,12 +23,15 @@ public class JDKProxy implements InvocationHandler {
     /** 原子类保证id唯一*/
     private static AtomicLong atomicLong = new AtomicLong();
 
+    private String serviceName;
+
     private Class<?> clazz;
 
     /** 绑定委托对象，并返回代理类 */
-    public Object getProxy(Class clazz,NettyClient client){
+    public Object getProxy(Class clazz,NettyClient client,String serviceName){
         this.clazz = clazz;
         this.client = client;
+        this.serviceName = serviceName;
         //绑定该类实现的所有接口，取得代理类
         return Proxy.newProxyInstance(clazz.getClassLoader(),
                 clazz.getInterfaces(),
@@ -45,6 +48,7 @@ public class JDKProxy implements InvocationHandler {
         request.setParams(args);
         request.setClazz(clazz);
         request.setParameterTypes(method.getParameterTypes());
+        request.setServiceName(serviceName);
         //CGLIBProxy
         Response response = client.send(request);
         if(response == null){
